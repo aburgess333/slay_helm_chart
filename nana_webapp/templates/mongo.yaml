@@ -1,0 +1,57 @@
+# Deployment and Service in this 1 file
+# Because they belong together
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-deployment
+  labels:
+    app: mongo
+spec:
+  replicas: 1
+  # Label selectors match all pods with the label "app:nginx"
+  selector:
+    matchLabels:
+      app: mongo
+  # Template is the configuration of the pod within the configuration of the deployment
+  # Has its own metadata and spec values
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      # Can have multiple containers within a pod
+      # Generally only 1
+      containers:
+      - name: mongodb
+        image: mongo:8.0.6
+        ports:
+        - containerPort: 27017
+        # To get environment variables from the secret.yaml you do the following
+        # Read the image documentation (on dockerhub for mongo)
+        # This gets the capitalized variables below
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-user 
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-password 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+spec:
+  selector:
+    app: mongo
+  ports:
+    - protocol: TCP
+      # not required but usually use the same container port for service
+      port: 27017
+      # target port however, NEEDS to match the container port
+      targetPort: 27017

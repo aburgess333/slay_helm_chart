@@ -1,0 +1,70 @@
+# Deployment and Service in this 1 file
+# Because they belong together
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp-deployment
+  labels:
+    app: webapp
+spec:
+  replicas: 1
+  # Label selectors match all pods with the label "app:nginx"
+  selector:
+    matchLabels:
+      app: webapp
+  # Template is the configuration of the pod within the configuration of the deployment
+  # Has its own metadata and spec values
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      # Can have multiple containers within a pod
+      # Generally only 1
+      containers:
+      - name: webapp
+        image: nanajanashia/k8s-demo-app:v1.0
+        ports:
+        - containerPort: 3000
+        # The following environment variables were pre-contextualized in the app development from Nana
+        env:
+        - name: USER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-user 
+        - name: USER_PWD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-password
+        - name: DB_URL
+          valueFrom:
+            # The following is the config map we created called "mongo-config.yaml"
+            # in this file the mongo-url is defined
+            configMapKeyRef:
+              name: mongo-config
+              key: mongo-url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp-service
+spec:
+  # the type will classify if it is an internal or external service
+  # "type: ClusterIP" is the default which is internal
+  # below is the external service - so we can access it in a web browser
+  type: NodePort
+  selector:
+    app: webapp
+  ports:
+    - protocol: TCP
+      # not required but usually use the same container port for service
+      port: 3000
+      # target port however, NEEDS to match the container port
+      targetPort: 3000
+      # for the type "NodePort" (external service)
+      # it is the ports that will open on the K8 nodes on which the app will be accessible
+      # MUST BE BETWEEN 30000 - 32767
+      nodePort: 30100
