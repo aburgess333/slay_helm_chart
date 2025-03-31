@@ -6,19 +6,19 @@ kind: Deployment
 metadata:
   name: mongo-deployment
   labels:
-    app: mongo
+    app: {{ .Values.dbName }}
 spec:
   replicas: 1
   # Label selectors match all pods with the label "app:nginx"
   selector:
     matchLabels:
-      app: mongo
+      app: {{ .Values.dbName }}
   # Template is the configuration of the pod within the configuration of the deployment
   # Has its own metadata and spec values
   template:
     metadata:
       labels:
-        app: mongo
+        app: {{ .Values.dbName }}
     spec:
       # Can have multiple containers within a pod
       # Generally only 1
@@ -45,10 +45,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo-service
+  name: {{ .Values.dbName }}
 spec:
   selector:
-    app: mongo
+    app: {{ .Values.dbName }}
   ports:
     - protocol: TCP
       # not required but usually use the same container port for service

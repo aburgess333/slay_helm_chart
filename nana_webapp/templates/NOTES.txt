@@ -1,0 +1,2 @@
+# Anything in this file will be output to the user in the terminal when upgrading/installing the helm chart 
+# helpful info on how to access the service, port forwarding etc
